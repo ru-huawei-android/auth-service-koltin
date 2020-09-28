@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.huawei.hms.sample2
+package com.huawei.hms.auth
 
 import android.content.Intent
 import android.os.Bundle
@@ -22,11 +22,9 @@ import android.widget.Toast
 import com.huawei.agconnect.auth.AGConnectAuth
 import com.huawei.agconnect.auth.AGConnectAuthCredential
 import com.huawei.agconnect.auth.HWGameAuthProvider
-import com.huawei.agconnect.auth.SignInResult
 import com.huawei.hms.api.HuaweiMobileServicesUtil
 import com.huawei.hms.jos.JosApps
 import com.huawei.hms.jos.games.Games
-import com.huawei.hms.jos.games.player.Player
 import com.huawei.hms.support.hwid.HuaweiIdAuthManager
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParams
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParamsHelper

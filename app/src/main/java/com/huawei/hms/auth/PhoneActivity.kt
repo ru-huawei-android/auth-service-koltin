@@ -1,4 +1,4 @@
-package com.huawei.hms.sample2
+package com.huawei.hms.auth
 
 import android.Manifest.permission.READ_PHONE_NUMBERS
 import android.Manifest.permission.READ_PHONE_STATE
