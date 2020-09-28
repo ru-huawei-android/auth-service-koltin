@@ -18,38 +18,39 @@ package com.huawei.hms.sample2
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import coil.api.clear
-import coil.api.load
+import coil.clear
+import coil.load
 import com.huawei.agconnect.auth.AGCAuthException
 import com.huawei.agconnect.auth.AGConnectAuth
 import com.huawei.agconnect.auth.AGConnectUser
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
-//author Ivantsov Alexey
 open class BaseActivity : AppCompatActivity() {
 
-    fun getUserInfo(user: AGConnectUser, iv_profile: ImageView? = null): String {
-        val info = """displayName: ${user.displayName}
-                      UID: ${user.uid}
-                      email: ${user.email}
-                      emailVerified: ${user.emailVerified}
-                      isAnonymous: ${user.isAnonymous}
-                      passwordSetted: ${user.passwordSetted}
-                      phone: ${user.phone}
-                      providerId: ${providersMap[user.providerId?.toInt()]}  [id: ${user.providerId} ]
-                      providerInfo: ${user.providerInfo?.toString()}"""
+    fun getUserInfo(user: AGConnectUser, avatar: ImageView? = null): String {
+        val info = getString(
+                R.string.user_info_formatted_string,
+                user.displayName,
+                user.uid,
+                user.email,
+                user.emailVerified,
+                user.isAnonymous,
+                user.passwordSetted,
+                user.phone,
+                providersMap[user.providerId?.toInt()],
+                user.providerId,
+                user.providerInfo?.toString())
 
-        iv_profile?.load(user.photoUrl) { crossfade(true) }
+        avatar?.load(user.photoUrl) { crossfade(true) }
         return info
     }
 
     fun isProviderLinked(user: AGConnectUser?, providerId: Int): Boolean {
         for (provider in user?.providerInfo!!) {
-            if (provider.containsKey("provider") && provider.getValue("provider")
-                            .toInt() == providerId
-            )
+            if (provider.containsKey("provider") && provider.getValue("provider").toInt() == providerId) {
                 return true
+            }
         }
         return false
     }
@@ -58,75 +59,57 @@ open class BaseActivity : AppCompatActivity() {
         return AGConnectAuth.getInstance().currentUser
     }
 
-    fun checkError(exception: Exception): String? {
-        var message: String?
-        if (exception is AGCAuthException) {
-            message = exception.localizedMessage
+    fun checkError(exception: Exception): String {
+        return if (exception is AGCAuthException) {
             when (exception.code) {
-                AGCAuthException.INVALID_PHONE -> message = "Invalid mobile number."
-                AGCAuthException.PASSWORD_VERIFICATION_CODE_OVER_LIMIT -> message =
-                        "The number of verification code inputs for password-based sign-in exceeds the upper limit."
-                AGCAuthException.PASSWORD_VERIFY_CODE_ERROR -> message =
-                        "Incorrect password or verification code."
-                AGCAuthException.VERIFY_CODE_ERROR -> message = "Incorrect verification code."
-                AGCAuthException.VERIFY_CODE_FORMAT_ERROR -> message =
-                        "Incorrect verification code format."
-                AGCAuthException.VERIFY_CODE_AND_PASSWORD_BOTH_NULL -> message =
-                        "The verification code or password cannot be empty."
-                AGCAuthException.VERIFY_CODE_EMPTY -> message = "The verification code is empty."
-                AGCAuthException.VERIFY_CODE_LANGUAGE_EMPTY -> message =
-                        "The language for sending a verification code is empty."
-                AGCAuthException.VERIFY_CODE_RECEIVER_EMPTY -> message =
-                        "The verification code receiver is empty."
-                AGCAuthException.VERIFY_CODE_ACTION_ERROR -> message =
-                        "The verification code type is empty."
-                AGCAuthException.VERIFY_CODE_TIME_LIMIT -> message =
-                        "The number of times for sending verification codes exceeds the upper limit."
-                AGCAuthException.ACCOUNT_PASSWORD_SAME -> message =
-                        "The password cannot be the same as the user name."
-                AGCAuthException.USER_NOT_REGISTERED -> message =
-                        "The user has not been registered."
-                AGCAuthException.USER_HAVE_BEEN_REGISTERED -> message =
-                        "The user already exists."
-                AGCAuthException.PROVIDER_USER_HAVE_BEEN_LINKED -> message =
-                        "The authentication mode has been associated with another user."
-                AGCAuthException.PROVIDER_HAVE_LINKED_ONE_USER -> message =
-                        "The authentication mode has already been associated with the user."
-                AGCAuthException.CANNOT_UNLINK_ONE_PROVIDER_USER -> message =
-                        "Cannot disassociate a single authentication mode."
-                AGCAuthException.AUTH_METHOD_IS_DISABLED -> message =
-                        "The authentication mode is not supported."
-                AGCAuthException.FAIL_TO_GET_THIRD_USER_INFO -> message =
-                        "Failed to obtain the third-party user information."
+                AGCAuthException.INVALID_PHONE -> getString(R.string.invalid_phone)
+                AGCAuthException.PASSWORD_VERIFICATION_CODE_OVER_LIMIT -> getString(R.string.password_verification_code_over_limit)
+                AGCAuthException.PASSWORD_VERIFY_CODE_ERROR -> getString(R.string.password_verify_code_error)
+                AGCAuthException.VERIFY_CODE_ERROR -> getString(R.string.verify_code_error)
+                AGCAuthException.VERIFY_CODE_FORMAT_ERROR -> getString(R.string.verify_code_format_error)
+                AGCAuthException.VERIFY_CODE_AND_PASSWORD_BOTH_NULL -> getString(R.string.verify_code_and_password_both_null)
+                AGCAuthException.VERIFY_CODE_EMPTY -> getString(R.string.verify_code_empty)
+                AGCAuthException.VERIFY_CODE_LANGUAGE_EMPTY -> getString(R.string.verify_code_language_empty)
+                AGCAuthException.VERIFY_CODE_RECEIVER_EMPTY -> getString(R.string.verify_code_receiver_empty)
+                AGCAuthException.VERIFY_CODE_ACTION_ERROR -> getString(R.string.verify_code_action_error)
+                AGCAuthException.VERIFY_CODE_TIME_LIMIT -> getString(R.string.verify_code_time_limit)
+                AGCAuthException.ACCOUNT_PASSWORD_SAME -> getString(R.string.account_password_same)
+                AGCAuthException.USER_HAVE_BEEN_REGISTERED -> getString(R.string.user_have_been_registered)
+                AGCAuthException.PROVIDER_USER_HAVE_BEEN_LINKED -> getString(R.string.provider_user_have_been_linked)
+                AGCAuthException.USER_NOT_REGISTERED -> getString(R.string.user_not_registered)
+                AGCAuthException.PROVIDER_HAVE_LINKED_ONE_USER -> getString(R.string.provider_have_linked_one_user)
+                AGCAuthException.CANNOT_UNLINK_ONE_PROVIDER_USER -> getString(R.string.cannot_unlink_one_provider_user)
+                AGCAuthException.AUTH_METHOD_IS_DISABLED -> getString(R.string.auth_method_is_disabled)
+                AGCAuthException.FAIL_TO_GET_THIRD_USER_INFO -> getString(R.string.fail_to_get_third_user_info)
+                else -> exception.localizedMessage
             }
         } else {
-            message = exception.localizedMessage
+            exception.localizedMessage
         }
-        return message
     }
 
     open fun logout() {
         if (AGConnectAuth.getInstance().currentUser != null) {
             AGConnectAuth.getInstance().signOut()
         }
-        tvResults.text = ""
-        ivProfile.clear()
+        results.text = ""
+        avatarView.clear()
     }
 
     fun getUserInfoAndSwitchUI(providerId: Int) {
         /** Проверяем наличие текущего уже авторизированного пользователя*/
         if (getAGConnectUser() != null) {
             /** Выводим инфу о пользователе*/
-            tvResults.text = getUserInfo(AGConnectAuth.getInstance().currentUser, ivProfile)
+            results.text = getUserInfo(AGConnectAuth.getInstance().currentUser, avatarView)
             /** проверяем кол-во привязанных провайдеров*/
             if (getAGConnectUser()?.providerInfo != null && getAGConnectUser()!!.providerInfo!!.size > 1
                     /** Если один из них = providerId*/
                     && isProviderLinked(getAGConnectUser(), providerId)
             ) {
                 /** то меняем текст кнопки*/
-                btnLogin.visibility = View.GONE
+                buttonLogin.visibility = View.GONE
                 btnLogout.visibility = View.VISIBLE
-                btnLinkUnlink.apply {
+                buttonLinkage.apply {
                     text = getString(R.string.unlink)
                     visibility = View.VISIBLE
                 }
@@ -136,26 +119,26 @@ open class BaseActivity : AppCompatActivity() {
                     && isProviderLinked(getAGConnectUser(), providerId)
             ) {
                 /** Скрываем кнопку Login & LinkUnlink*/
-                btnLogin.visibility = View.GONE
+                buttonLogin.visibility = View.GONE
                 btnLogout.apply {
                     visibility = View.VISIBLE
                     text = getString(R.string.logout)
                 }
-                btnLinkUnlink.visibility = View.GONE
+                buttonLinkage.visibility = View.GONE
             } else {
                 /** Стандартный режим для Link/Unlink*/
-                btnLogin.visibility = View.GONE
+                buttonLogin.visibility = View.GONE
                 btnLogout.visibility = View.VISIBLE
-                btnLinkUnlink.apply {
+                buttonLinkage.apply {
                     text = getString(R.string.link)
                     visibility = View.VISIBLE
                 }
             }
         } else {
             /** Стандартный режим для Login*/
-            btnLogin.visibility = View.VISIBLE
+            buttonLogin.visibility = View.VISIBLE
             btnLogout.visibility = View.GONE
-            btnLinkUnlink.apply {
+            buttonLinkage.apply {
                 text = getString(R.string.link)
                 visibility = View.GONE
             }

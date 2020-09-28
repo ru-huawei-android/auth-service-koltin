@@ -23,28 +23,28 @@ import com.huawei.agconnect.auth.SignInResult
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
-//author Ivantsov Alexey
-class AnonimousLogin : BaseActivity() {
+class AnonymousLogin : BaseActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        btnLinkUnlink.visibility = View.GONE
+        buttonLinkage.visibility = View.GONE
 
-        btnLogin.setOnClickListener {
+        buttonLogin.setOnClickListener {
             AGConnectAuth.getInstance().signInAnonymously()
-                .addOnSuccessListener { signInResult: SignInResult ->
-                    val user = signInResult.user
-                    tvResults.text = getUserInfo(user, ivProfile)
-                }
-                .addOnFailureListener { e: Exception? ->
-                    Toast.makeText(
-                        this@AnonimousLogin,
-                        "Anonymous SignIn Failed",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = e?.localizedMessage
-                }
+                    .addOnSuccessListener { signInResult: SignInResult ->
+                        val user = signInResult.user
+                        results.text = getUserInfo(user, avatarView)
+                    }
+                    .addOnFailureListener { e: Exception? ->
+                        Toast.makeText(
+                                this@AnonymousLogin,
+                                "Anonymous SignIn Failed",
+                                Toast.LENGTH_LONG
+                        ).show()
+                        results.text = e?.localizedMessage
+                    }
         }
 
         btnLogout.setOnClickListener {
@@ -59,15 +59,15 @@ class AnonimousLogin : BaseActivity() {
 
     private fun getUserInfoAndSwitchUI() {
         /** Проверяем наличие текущего уже авторизированного пользователя*/
-        if (getAGConnectUser() != null) {
+        getAGConnectUser()?.let {
             /** Выводим информацию о пользователе*/
-            tvResults.text = getUserInfo(getAGConnectUser()!!, ivProfile)
+            results.text = getUserInfo(getAGConnectUser()!!, avatarView)
             /** Скрываем кнопку Login & LinkUnlink*/
-            btnLogin.visibility = View.GONE
+            buttonLogin.visibility = View.GONE
             btnLogout.visibility = View.VISIBLE
-        } else {
+        } ?: run {
             /** Стандартный режим*/
-            btnLogin.visibility = View.VISIBLE
+            buttonLogin.visibility = View.VISIBLE
             btnLogout.visibility = View.GONE
         }
     }

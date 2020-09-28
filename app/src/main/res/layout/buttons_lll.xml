@@ -5,25 +5,23 @@
     android:orientation="vertical">
 
     <Button
-        android:id="@+id/btnLogin"
+        android:id="@+id/buttonLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="@string/login"/>
+        android:layout_marginTop="16dp"
+        android:text="@string/login" />
 
     <Button
-        android:id="@+id/btnLinkUnlink"
+        android:id="@+id/buttonLinkage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_weight="1"
+        android:layout_marginTop="16dp"
         android:text="@string/link" />
 
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_weight="1"
+        android:layout_marginTop="16dp"
         android:text="@string/logout" />
 </LinearLayout>

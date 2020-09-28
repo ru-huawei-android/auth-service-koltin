@@ -28,32 +28,32 @@ import com.twitter.sdk.android.core.identity.TwitterAuthClient
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
-//author Ivantsov Alexey
+private const val TAG = "TwitterActivity"
+
 class TwitterActivity : BaseActivity() {
-    private var twitterAuthClient: TwitterAuthClient? = null
-    private val TAG = TwitterActivity::class.simpleName
+    private lateinit var twitterAuthClient: TwitterAuthClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val authConfig = TwitterAuthConfig(
-            getString(R.string.twitter_app_id),
-            getString(R.string.twitter_app_secret)
+                getString(R.string.twitter_app_id),
+                getString(R.string.twitter_app_secret)
         )
         val twitterConfig = TwitterConfig.Builder(this)
-            .twitterAuthConfig(authConfig)
-            .build()
+                .twitterAuthConfig(authConfig)
+                .build()
         Twitter.initialize(twitterConfig)
         twitterAuthClient = TwitterAuthClient()
 
         setContentView(R.layout.activity_login)
 
-        btnLinkUnlink.visibility=View.GONE
+        buttonLinkage.visibility = View.GONE
 
-        btnLogin.setOnClickListener {
+        buttonLogin.setOnClickListener {
             login()
         }
 
-        btnLinkUnlink.setOnClickListener {
+        buttonLinkage.setOnClickListener {
             link()
         }
 
@@ -63,66 +63,62 @@ class TwitterActivity : BaseActivity() {
     }
 
     private fun login() {
-        twitterAuthClient!!.authorize(
-            this,
-            object : Callback<TwitterSession>() {
-                override fun success(result: Result<TwitterSession>) {
-                    val token = result.data.authToken.token
-                    val secret = result.data.authToken.secret
-                    val credential =
+        twitterAuthClient.authorize(
+                this, object : Callback<TwitterSession>() {
+            override fun success(result: Result<TwitterSession>) {
+                val token = result.data.authToken.token
+                val secret = result.data.authToken.secret
+                val credential =
                         TwitterAuthProvider.credentialWithToken(token, secret)
-                    AGConnectAuth.getInstance().signIn(credential)
+                AGConnectAuth.getInstance().signIn(credential)
                         .addOnSuccessListener { signInResult ->
-                            var user = signInResult.user
+                            val user = signInResult.user
                             Toast.makeText(this@TwitterActivity, user.uid, Toast.LENGTH_LONG)
-                                .show()
+                                    .show()
                             getUserInfoAndSwitchUI(AGConnectAuthCredential.Twitter_Provider)
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(this@TwitterActivity, e.message, Toast.LENGTH_LONG)
-                                .show()
-                            tvResults.text = e.message
+                            Toast.makeText(this@TwitterActivity, e.message, Toast.LENGTH_LONG).show()
+                            results.text = e.message
                         }
-                }
+            }
 
-                override fun failure(exception: TwitterException) {
-                    Toast.makeText(this@TwitterActivity, exception.message, Toast.LENGTH_LONG)
-                        .show()
-                    tvResults.text = exception.message
-                }
-            })
+            override fun failure(exception: TwitterException) {
+                Toast.makeText(this@TwitterActivity, exception.message, Toast.LENGTH_LONG).show()
+                results.text = exception.message
+            }
+        })
     }
 
     private fun link() {
         if (!isProviderLinked(getAGConnectUser(), AGConnectAuthCredential.Twitter_Provider)) {
-        twitterAuthClient!!.authorize(
-            this,
-            object : Callback<TwitterSession>() {
-                override fun success(result: Result<TwitterSession>) {
-                    val token = result.data.authToken.token
-                    val secret = result.data.authToken.secret
-                    val credential =
-                        TwitterAuthProvider.credentialWithToken(token, secret)
-                    getAGConnectUser()!!.link(credential)
-                        .addOnSuccessListener { signInResult ->
-                            var user = signInResult.user
-                            Toast.makeText(this@TwitterActivity, user.uid, Toast.LENGTH_LONG)
-                                .show()
-                            getUserInfoAndSwitchUI(AGConnectAuthCredential.Twitter_Provider)
+            twitterAuthClient.authorize(
+                    this,
+                    object : Callback<TwitterSession>() {
+                        override fun success(result: Result<TwitterSession>) {
+                            val token = result.data.authToken.token
+                            val secret = result.data.authToken.secret
+                            val credential =
+                                    TwitterAuthProvider.credentialWithToken(token, secret)
+                            getAGConnectUser()!!.link(credential)
+                                    .addOnSuccessListener { signInResult ->
+                                        val user = signInResult.user
+                                        Toast.makeText(this@TwitterActivity, user.uid, Toast.LENGTH_LONG)
+                                                .show()
+                                        getUserInfoAndSwitchUI(AGConnectAuthCredential.Twitter_Provider)
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(this@TwitterActivity, e.message, Toast.LENGTH_LONG)
+                                                .show()
+                                        results.text = e.message
+                                    }
                         }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(this@TwitterActivity, e.message, Toast.LENGTH_LONG)
-                                .show()
-                            tvResults.text = e.message
-                        }
-                }
 
-                override fun failure(exception: TwitterException) {
-                    Toast.makeText(this@TwitterActivity, exception.message, Toast.LENGTH_LONG)
-                        .show()
-                    tvResults.text = exception.message
-                }
-            })
+                        override fun failure(exception: TwitterException) {
+                            Toast.makeText(this@TwitterActivity, exception.message, Toast.LENGTH_LONG).show()
+                            results.text = exception.message
+                        }
+                    })
         } else {
             unlink()
         }
@@ -136,23 +132,23 @@ class TwitterActivity : BaseActivity() {
     private fun unlink() {
         if (AGConnectAuth.getInstance().currentUser != null) {
             AGConnectAuth.getInstance().currentUser
-                .unlink(AGConnectAuthCredential.Twitter_Provider)
-                .addOnSuccessListener { signInResult ->
-                    var user = signInResult.user
-                    Toast.makeText(this@TwitterActivity, user.uid, Toast.LENGTH_LONG)
-                        .show()
-                    getUserInfoAndSwitchUI(AGConnectAuthCredential.Twitter_Provider)
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, e.message.toString())
-                    val message = checkError(e)
-                    Toast.makeText(
-                        this@TwitterActivity,
-                        message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = message
-                }
+                    .unlink(AGConnectAuthCredential.Twitter_Provider)
+                    .addOnSuccessListener { signInResult ->
+                        val user = signInResult.user
+                        Toast.makeText(this@TwitterActivity, user.uid, Toast.LENGTH_LONG)
+                                .show()
+                        getUserInfoAndSwitchUI(AGConnectAuthCredential.Twitter_Provider)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, e.message.toString())
+                        val message = checkError(e)
+                        Toast.makeText(
+                                this@TwitterActivity,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show()
+                        results.text = message
+                    }
         }
     }
 
@@ -163,6 +159,6 @@ class TwitterActivity : BaseActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        twitterAuthClient!!.onActivityResult(requestCode, resultCode, data)
+        twitterAuthClient.onActivityResult(requestCode, resultCode, data)
     }
 }

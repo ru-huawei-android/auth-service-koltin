@@ -21,13 +21,14 @@ import kotlinx.android.synthetic.main.activity_phone_login.*
 import kotlinx.android.synthetic.main.bottom_info.*
 import java.util.*
 
-//author Ivantsov Alexey
-class PhoneActivity : BaseActivity() {
-    private val TAG = PhoneActivity::class.simpleName
+private const val TAG = "PhoneActivity"
 
-    var verifyCode: String? = ""
+class PhoneActivity : BaseActivity() {
+
     var hasPhonePermission: Boolean = false
-    var phoneNumber: String? = ""
+
+    var verifyCode: String = ""
+    var phoneNumber: String = ""
 
     /**
      * Переменная для внутренней логики - внедрено для демо
@@ -65,7 +66,7 @@ class PhoneActivity : BaseActivity() {
         btnPhoneCodeOk.setOnClickListener {
             verifyCode = editTextVerificationCode.text.toString()
 
-            if (verifyCode.isNullOrEmpty()) {
+            if (verifyCode.isEmpty()) {
                 Toast.makeText(
                     this@PhoneActivity,
                     "Please put the verification code",
@@ -140,7 +141,7 @@ class PhoneActivity : BaseActivity() {
                 message,
                 Toast.LENGTH_LONG
             ).show()
-            tvResults.text = message
+            results.text = message
             editTextPhone.isEnabled = true
             btnPhoneCode.isEnabled = true
         }
@@ -153,9 +154,9 @@ class PhoneActivity : BaseActivity() {
         val phoneUser = if (credentialType) {
             PhoneUser.Builder()
                 /**Код страны (международный), для России это 7, вводится без знака +*/
-                .setCountryCode(phoneNumber!!.substring(1, 2))
+                .setCountryCode(phoneNumber.substring(1, 2))
                 /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
-                .setPhoneNumber(phoneNumber!!.substring(2))
+                .setPhoneNumber(phoneNumber.substring(2))
                 .setVerifyCode(verifyCode)
                 /**
                  * Обязательно.
@@ -168,14 +169,14 @@ class PhoneActivity : BaseActivity() {
         } else {
             PhoneUser.Builder()
                 /**Код страны (международный), для России это 7, вводится без знака +*/
-                .setCountryCode(phoneNumber!!.substring(1, 2))
+                .setCountryCode(phoneNumber.substring(1, 2))
                 /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
-                .setPhoneNumber(phoneNumber!!.substring(2))
+                .setPhoneNumber(phoneNumber.substring(2))
                 .setVerifyCode(verifyCode)
                 .build()
         }
         AGConnectAuth.getInstance().createUser(phoneUser)
-            .addOnSuccessListener { result: SignInResult ->
+            .addOnSuccessListener { result ->
                 /**
                  *  После создания учетной записи пользователь входит в систему
                  */
@@ -189,7 +190,7 @@ class PhoneActivity : BaseActivity() {
                     message,
                     Toast.LENGTH_LONG
                 ).show()
-                tvResults.text = message
+                results.text = message
             }
     }
 
@@ -199,18 +200,18 @@ class PhoneActivity : BaseActivity() {
             /** С паролем */
             PhoneAuthProvider.credentialWithPassword(
                 /**Код страны (международный), для России это 7, вводится без знака +*/
-                phoneNumber!!.substring(1, 2),
+                phoneNumber.substring(1, 2),
                 /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
-                phoneNumber!!.substring(2),
+                phoneNumber.substring(2),
                 "password"//TODO() we need request password from user...
             )
         } else {
             /** с кодом верификации, пароль опционален*/
             PhoneAuthProvider.credentialWithVerifyCode(
                 /**Код страны (международный), для России это 7, вводится без знака +*/
-                phoneNumber!!.substring(1, 2),
+                phoneNumber.substring(1, 2),
                 /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
-                phoneNumber!!.substring(2),
+                phoneNumber.substring(2),
                 /** пароль опционален*/
                 "",
                 verifyCode
@@ -218,14 +219,14 @@ class PhoneActivity : BaseActivity() {
         }
         /**Осуществляем вход.*/
         AGConnectAuth.getInstance().signIn(credential)
-            .addOnSuccessListener { signInResult: SignInResult ->
+            .addOnSuccessListener { signInResult ->
                 llCodeInput.visibility = View.GONE
                 val user = signInResult.user
                 Toast.makeText(this@PhoneActivity, user.uid, Toast.LENGTH_LONG).show()
-                tvResults.text = getUserInfo(user, ivProfile)
+                results.text = getUserInfo(user, avatarView)
                 btnPhoneCode.visibility = View.GONE
             }
-            .addOnFailureListener { e: Exception ->
+            .addOnFailureListener { e ->
                 Log.e(TAG, e.message.toString())
                 val message = checkError(e)
                 Toast.makeText(
@@ -233,7 +234,7 @@ class PhoneActivity : BaseActivity() {
                     message,
                     Toast.LENGTH_LONG
                 ).show()
-                tvResults.text = message
+                results.text = message
                 /** Если получаем ошибку AGCAuthException.USER_NOT_REGISTERED,
                  * то начинаем регистрацию пользователя в AGC
                  */
@@ -247,7 +248,7 @@ class PhoneActivity : BaseActivity() {
         super.onResume()
         /** Проверяем наличие текущего уже авторизированного пользователя*/
         if (AGConnectAuth.getInstance().currentUser != null) {
-            tvResults.text = getUserInfo(AGConnectAuth.getInstance().currentUser, ivProfile)
+            results.text = getUserInfo(AGConnectAuth.getInstance().currentUser, avatarView)
             btnPhoneCode.visibility = View.VISIBLE
             llCodeInput.visibility = View.GONE
             btnCreateUserInAg.visibility = View.GONE
@@ -256,7 +257,7 @@ class PhoneActivity : BaseActivity() {
 
         /** Делаем попытку достать номер телефона и подставить его в поле ввода*/
         if (hasPhonePermission) {
-            phoneNumber = getPhoneNumberFromTelephony(this)
+            phoneNumber = getPhoneNumberFromTelephony(this) ?: ""
             editTextPhone.setText(phoneNumber)
         }
     }
@@ -277,9 +278,7 @@ class PhoneActivity : BaseActivity() {
     @SuppressLint("MissingPermission", "HardwareIds")
     fun getPhoneNumberFromTelephony(context: Context): String? {
         try {
-            val telephonyManager =
-                context.applicationContext
-                    .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            val telephonyManager = context.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             return telephonyManager.line1Number
         } catch (securityException: SecurityException) {
         }
@@ -334,14 +333,14 @@ class PhoneActivity : BaseActivity() {
                 grantResults[1] == PackageManager.PERMISSION_GRANTED
             ) {
                 hasPhonePermission = true
-                phoneNumber = getPhoneNumberFromTelephony(this)
+                phoneNumber = getPhoneNumberFromTelephony(this) ?: ""
                 editTextPhone.setText(phoneNumber)
             } else {
                 Log.i(
                     TAG,
                     "onRequestPermissionsResult: apply READ_PHONE_STATE & READ_PHONE_NUMBERS PERMISSION failed"
                 )
-                tvResults.text =
+                results.text =
                     "onRequestPermissionsResult: apply READ_PHONE_STATE PERMISSION &READ_PHONE_NUMBERS failed"
             }
         }

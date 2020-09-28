@@ -26,7 +26,6 @@ import kotlinx.android.synthetic.main.bottom_info.*
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
-//author Ivantsov Alexey
 class MainActivity : BaseActivity() {
     /**
      * Срок действия access token составляет два дня, а refresh token валиден два месяца.
@@ -63,7 +62,7 @@ class MainActivity : BaseActivity() {
         }
 
         btnAnonymousLogin.setOnClickListener {
-            startActivity(Intent(this@MainActivity, AnonimousLogin::class.java))
+            startActivity(Intent(this@MainActivity, AnonymousLogin::class.java))
             overridePendingTransition(0, 0)
         }
 
@@ -106,11 +105,7 @@ class MainActivity : BaseActivity() {
     /** Это нужно что бы узнать хэш-адрес для FB*/
     private fun printKeyHash() {
         try {
-            val info = packageManager
-                .getPackageInfo(
-                    "com.example.authservice",
-                    PackageManager.GET_SIGNATURES
-                )
+            val info = packageManager.getPackageInfo("com.example.authservice", PackageManager.GET_SIGNATURES)
             for (signature in info.signatures) {
                 val md: MessageDigest = MessageDigest.getInstance("SHA")
                 md.update(signature.toByteArray())
@@ -130,9 +125,9 @@ class MainActivity : BaseActivity() {
         super.onResume()
         //проверяем наличие текущего уже авторизированного пользователя
         if (AGConnectAuth.getInstance().currentUser != null)
-            tvResults.text = getUserInfo(AGConnectAuth.getInstance().currentUser)
+            results.text = getUserInfo(AGConnectAuth.getInstance().currentUser)
         else {
-            tvResults.text = ""
+            results.text = ""
         }
     }
 

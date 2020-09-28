@@ -132,7 +132,7 @@ class EmailActivity : BaseActivity() {
                 message,
                 Toast.LENGTH_LONG
             ).show()
-            tvResults.text = message
+            results.text = message
         }
     }
 
@@ -150,7 +150,7 @@ class EmailActivity : BaseActivity() {
                  * и в дальнейшем пользователь может войти в систему с помощью пароля.
                  * В противном случае пользователь может войти в систему только с помощью кода подтверждения.
                  */
-                .setPassword("password")//TODO() we need request password from user...
+                .setPassword("password")
                 .build()
         } else {
             EmailUser.Builder()
@@ -159,13 +159,13 @@ class EmailActivity : BaseActivity() {
                 .build()
         }
         AGConnectAuth.getInstance().createUser(emailUser)
-            .addOnSuccessListener { result: SignInResult ->
+            .addOnSuccessListener {
                 /**
                  *  После создания учетной записи пользователь входит в систему
                  **/
                 signInToAppGalleryConnect()
             }
-            .addOnFailureListener { e: Exception ->
+            .addOnFailureListener { e ->
                 Log.e(TAG, e.message.toString())
                 val message = checkError(e)
                 Toast.makeText(
@@ -173,7 +173,7 @@ class EmailActivity : BaseActivity() {
                     message,
                     Toast.LENGTH_LONG
                 ).show()
-                tvResults.text = message
+                results.text = message
             }
     }
 
@@ -201,10 +201,10 @@ class EmailActivity : BaseActivity() {
                 llCodeInput.visibility = View.GONE
                 val user = signInResult.user
                 Toast.makeText(this@EmailActivity, user.uid, Toast.LENGTH_LONG).show()
-                tvResults.text = getUserInfo(user, ivProfile)
+                results.text = getUserInfo(user, avatarView)
                 btnEmailCode.visibility = View.GONE
             }
-            .addOnFailureListener { e: Exception ->
+            .addOnFailureListener { e ->
                 Log.e(TAG, e.message.toString())
                 val message = checkError(e)
                 Toast.makeText(
@@ -212,7 +212,7 @@ class EmailActivity : BaseActivity() {
                     message,
                     Toast.LENGTH_LONG
                 ).show()
-                tvResults.text = message
+                results.text = message
                 /** Если получаем ошибку AGCAuthException.USER_NOT_REGISTERED,
                  * то начинаем регистрацию пользователя в AGC
                  * */
@@ -226,7 +226,7 @@ class EmailActivity : BaseActivity() {
         super.onResume()
         /** Проверяем наличие текущего уже авторизированного пользователя*/
         if (AGConnectAuth.getInstance().currentUser != null){
-            tvResults.text = getUserInfo(AGConnectAuth.getInstance().currentUser, ivProfile)
+            results.text = getUserInfo(AGConnectAuth.getInstance().currentUser, avatarView)
             editTextEmail.visibility = View.GONE
             btnEmailCode.visibility = View.GONE
             llCodeInput.visibility = View.GONE

@@ -81,7 +81,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AnonimousLogin"
+            android:name=".AnonymousLogin"
             android:label="@string/anonymous_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />

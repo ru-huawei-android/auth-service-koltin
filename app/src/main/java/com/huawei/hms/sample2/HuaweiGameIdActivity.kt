@@ -35,12 +35,7 @@ import com.huawei.hms.support.hwid.service.HuaweiIdAuthService
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
-//author Ivantsov Alexey
 class HuaweiGameIdActivity : BaseActivity() {
-    private val TAG = HuaweiGameIdActivity::class.simpleName
-
-    private val HUAWEIGAME_SIGNIN = 7000
-    private val LINK_CODE = 7002
 
     private lateinit var mHuaweiIdAuthService: HuaweiIdAuthService
 
@@ -52,16 +47,16 @@ class HuaweiGameIdActivity : BaseActivity() {
         val appsClient = JosApps.getJosAppsClient(this, null)
         appsClient.init()
         val authParams =
-            HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM_GAME)
-                .createParams()
+                HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM_GAME)
+                        .createParams()
         mHuaweiIdAuthService =
-            HuaweiIdAuthManager.getService(this@HuaweiGameIdActivity, authParams)
+                HuaweiIdAuthManager.getService(this@HuaweiGameIdActivity, authParams)
 
-        btnLogin.setOnClickListener {
+        buttonLogin.setOnClickListener {
             login()
         }
 
-        btnLinkUnlink.setOnClickListener {
+        buttonLinkage.setOnClickListener {
             link()
         }
 
@@ -71,7 +66,7 @@ class HuaweiGameIdActivity : BaseActivity() {
     }
 
     private fun login() {
-        startActivityForResult(mHuaweiIdAuthService.signInIntent, HUAWEIGAME_SIGNIN)
+        startActivityForResult(mHuaweiIdAuthService.signInIntent, HUAWEI_GAME_SIGN_IN)
     }
 
     private fun link() {
@@ -95,48 +90,48 @@ class HuaweiGameIdActivity : BaseActivity() {
     private fun unlink() {
         if (AGConnectAuth.getInstance().currentUser != null) {
             AGConnectAuth.getInstance().currentUser
-                .unlink(AGConnectAuthCredential.HWGame_Provider)
-                .addOnSuccessListener { signInResult ->
-                    val user = signInResult.user
-                    Toast.makeText(this@HuaweiGameIdActivity, user.uid, Toast.LENGTH_LONG)
-                        .show()
-                    getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, e.message.toString())
-                    val message = checkError(e)
-                    Toast.makeText(
-                        this@HuaweiGameIdActivity,
-                        message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = message
-                }
+                    .unlink(AGConnectAuthCredential.HWGame_Provider)
+                    .addOnSuccessListener { signInResult ->
+                        val user = signInResult.user
+                        Toast.makeText(this@HuaweiGameIdActivity, user.uid, Toast.LENGTH_LONG)
+                                .show()
+                        getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, e.message.toString())
+                        val message = checkError(e)
+                        Toast.makeText(
+                                this@HuaweiGameIdActivity,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show()
+                        results.text = message
+                    }
         }
     }
 
     override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
+            requestCode: Int,
+            resultCode: Int,
+            data: Intent?
     ) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data == null) {
             Toast.makeText(
-                this@HuaweiGameIdActivity,
-                "Huawei Game Service Sign in Intent is null",
-                Toast.LENGTH_LONG
+                    this@HuaweiGameIdActivity,
+                    "Huawei Game Service Sign in Intent is null",
+                    Toast.LENGTH_LONG
             ).show()
             return
         }
         val task = HuaweiIdAuthManager.parseAuthResultFromIntent(data)
         task.addOnSuccessListener { signInHuaweiId: AuthHuaweiId ->
             getHwGameUserInfo(signInHuaweiId, requestCode)
-        }.addOnFailureListener { e: java.lang.Exception ->
+        }.addOnFailureListener { e ->
             Toast.makeText(
-                this@HuaweiGameIdActivity,
-                "HuaweiGameId signIn failed" + e.message,
-                Toast.LENGTH_LONG
+                    this@HuaweiGameIdActivity,
+                    "HuaweiGameId signIn failed" + e.message,
+                    Toast.LENGTH_LONG
             ).show()
         }
     }
@@ -144,85 +139,92 @@ class HuaweiGameIdActivity : BaseActivity() {
     private fun getHwGameUserInfo(signInHuaweiId: AuthHuaweiId, requestCode: Int) {
         val client = Games.getPlayersClient(this@HuaweiGameIdActivity, signInHuaweiId)
         val playerTask = client.currentPlayer
-        playerTask.addOnSuccessListener { player: Player ->
+        playerTask.addOnSuccessListener { player ->
             val imageUrl =
-                if (player.hasHiResImage())
-                    player.hiResImageUri.toString()
-                else
-                    player.iconImageUri.toString()
+                    if (player.hasHiResImage()) {
+                        player.hiResImageUri.toString()
+                    } else {
+                        player.iconImageUri.toString()
+                    }
             val credential = HWGameAuthProvider.Builder()
-                .setPlayerSign(player.playerSign)
-                .setPlayerId(player.playerId)
-                .setDisplayName(player.displayName)
-                .setImageUrl(imageUrl)
-                .setPlayerLevel(player.level)
-                .setSignTs(player.signTs)
-                .build()
-            if (requestCode == HUAWEIGAME_SIGNIN) {
+                    .setPlayerSign(player.playerSign)
+                    .setPlayerId(player.playerId)
+                    .setDisplayName(player.displayName)
+                    .setImageUrl(imageUrl)
+                    .setPlayerLevel(player.level)
+                    .setSignTs(player.signTs)
+                    .build()
+            if (requestCode == HUAWEI_GAME_SIGN_IN) {
                 if (getAGConnectUser() == null) {
                     AGConnectAuth.getInstance().signIn(credential)
-                        .addOnSuccessListener { signInResult: SignInResult ->
-                            val user = signInResult.user
-                            Toast.makeText(
-                                this@HuaweiGameIdActivity,
-                                user.uid,
-                                Toast.LENGTH_LONG
-                            ).show()
-                            getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
-                        }
-                        .addOnFailureListener { e: java.lang.Exception ->
-                            e.printStackTrace()
-                            val message = checkError(e)
-                            Toast.makeText(
-                                this@HuaweiGameIdActivity,
-                                message,
-                                Toast.LENGTH_LONG
-                            ).show()
-                            tvResults.text = message
-                        }
+                            .addOnSuccessListener { signInResult ->
+                                val user = signInResult.user
+                                Toast.makeText(
+                                        this@HuaweiGameIdActivity,
+                                        user.uid,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                                getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
+                            }
+                            .addOnFailureListener { e ->
+                                e.printStackTrace()
+                                val message = checkError(e)
+                                Toast.makeText(
+                                        this@HuaweiGameIdActivity,
+                                        message,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                                results.text = message
+                            }
                 } else {
                     val user = getAGConnectUser()
                     Toast.makeText(this@HuaweiGameIdActivity, user?.uid, Toast.LENGTH_LONG)
-                        .show()
+                            .show()
                     getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
                 }
             } else if (requestCode == LINK_CODE) {
                 if (getAGConnectUser() != null) {
                     getAGConnectUser()!!.link(credential)
-                        .addOnSuccessListener { signInResult ->
-                            val user = signInResult.user
-                            Toast.makeText(
-                                this@HuaweiGameIdActivity,
-                                user.uid,
-                                Toast.LENGTH_LONG
-                            ).show()
-                            getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
-                        }.addOnFailureListener { e ->
-                            e.printStackTrace()
-                            val message = checkError(e)
-                            Toast.makeText(
-                                this@HuaweiGameIdActivity,
-                                message,
-                                Toast.LENGTH_LONG
-                            ).show()
-                            tvResults.text = message
-                        }
+                            .addOnSuccessListener { signInResult ->
+                                val user = signInResult.user
+                                Toast.makeText(
+                                        this@HuaweiGameIdActivity,
+                                        user.uid,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                                getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
+                            }.addOnFailureListener { e ->
+                                e.printStackTrace()
+                                val message = checkError(e)
+                                Toast.makeText(
+                                        this@HuaweiGameIdActivity,
+                                        message,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                                results.text = message
+                            }
                 } else {
                     val user = getAGConnectUser()
-                    Toast.makeText(this@HuaweiGameIdActivity, user?.uid, Toast.LENGTH_LONG)
-                        .show()
+                    Toast.makeText(this@HuaweiGameIdActivity, user?.uid, Toast.LENGTH_LONG).show()
                     getUserInfoAndSwitchUI(AGConnectAuthCredential.HWGame_Provider)
                 }
             }
-        }.addOnFailureListener { e: java.lang.Exception ->
+        }.addOnFailureListener { e ->
             e.printStackTrace()
             val message = checkError(e)
             Toast.makeText(
-                this@HuaweiGameIdActivity,
-                message,
-                Toast.LENGTH_LONG
+                    this@HuaweiGameIdActivity,
+                    message,
+                    Toast.LENGTH_LONG
             ).show()
-            tvResults.text = message
+            results.text = message
         }
+    }
+
+    companion object {
+        private const val TAG = "HuaweiGameIdActivity"
+        private const val HUAWEI_GAME_SIGN_IN = 7000
+        private const val LINK_CODE = 7002
+
     }
 }

@@ -22,7 +22,6 @@ import android.widget.Toast
 import com.huawei.agconnect.auth.AGConnectAuth
 import com.huawei.agconnect.auth.AGConnectAuthCredential
 import com.huawei.agconnect.auth.HwIdAuthProvider
-import com.huawei.agconnect.auth.SignInResult
 import com.huawei.hms.common.ApiException
 import com.huawei.hms.support.api.entity.auth.Scope
 import com.huawei.hms.support.api.entity.hwid.HwIDConstant
@@ -34,41 +33,34 @@ import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 import java.util.*
 
-//author Ivantsov Alexey
-
-private const val HUAWEI_ID_SIGNIN = 8000
-private const val LINK_CODE = 8002
-
 class HuaweiIdActivity : BaseActivity() {
-    private val TAG = HuaweiIdActivity::class.simpleName
 
-    private var huaweiIdAuthService: HuaweiIdAuthService? = null
+    private lateinit var huaweiIdAuthService: HuaweiIdAuthService
     private lateinit var huaweiIdAuthParams: HuaweiIdAuthParams
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        
+
         val authParams = HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM)
         val scopeList: MutableList<Scope> = ArrayList()
         scopeList.add(Scope(HwIDConstant.SCOPE.ACCOUNT_BASEPROFILE))
         authParams.setScopeList(scopeList)
         huaweiIdAuthParams = authParams.setAccessToken().createParams()
-        huaweiIdAuthService =
-            HuaweiIdAuthManager.getService(this@HuaweiIdActivity, huaweiIdAuthParams)
+        huaweiIdAuthService = HuaweiIdAuthManager.getService(this@HuaweiIdActivity, huaweiIdAuthParams)
 
-        btnLogin.setOnClickListener { login() }
-        btnLinkUnlink.setOnClickListener { link() }
+        buttonLogin.setOnClickListener { login() }
+        buttonLinkage.setOnClickListener { link() }
         btnLogout.setOnClickListener { logout() }
     }
 
     private fun login() {
-        startActivityForResult(huaweiIdAuthService?.signInIntent, HUAWEI_ID_SIGNIN)
+        startActivityForResult(huaweiIdAuthService.signInIntent, HUAWEI_ID_SIGN_IN)
     }
 
     private fun link() {
         if (!isProviderLinked(getAGConnectUser(), AGConnectAuthCredential.HMS_Provider))
-            startActivityForResult(huaweiIdAuthService?.signInIntent, LINK_CODE)
+            startActivityForResult(huaweiIdAuthService.signInIntent, LINK_CODE)
         else
             unlink()
     }
@@ -86,33 +78,33 @@ class HuaweiIdActivity : BaseActivity() {
     private fun unlink() {
         if (AGConnectAuth.getInstance().currentUser != null) {
             AGConnectAuth.getInstance().currentUser
-                .unlink(AGConnectAuthCredential.HMS_Provider)
-                .addOnSuccessListener { signInResult ->
-                    val user = signInResult.user
-                    Toast.makeText(this@HuaweiIdActivity, user.uid, Toast.LENGTH_LONG)
-                        .show()
-                    getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, e.message.toString())
-                    val message = checkError(e)
-                    Toast.makeText(
-                        this@HuaweiIdActivity,
-                        message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = message
-                }
+                    .unlink(AGConnectAuthCredential.HMS_Provider)
+                    .addOnSuccessListener { signInResult ->
+                        val user = signInResult.user
+                        Toast.makeText(this@HuaweiIdActivity, user.uid, Toast.LENGTH_LONG)
+                                .show()
+                        getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, e.message.toString())
+                        val message = checkError(e)
+                        Toast.makeText(
+                                this@HuaweiIdActivity,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show()
+                        results.text = message
+                    }
         }
     }
 
     override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
+            requestCode: Int,
+            resultCode: Int,
+            data: Intent?
     ) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == HUAWEI_ID_SIGNIN) {
+        if (requestCode == HUAWEI_ID_SIGN_IN) {
             val authHuaweiIdTask = HuaweiIdAuthManager.parseAuthResultFromIntent(data)
             if (authHuaweiIdTask.isSuccessful) {
                 val huaweiAccount = authHuaweiIdTask.result
@@ -120,22 +112,22 @@ class HuaweiIdActivity : BaseActivity() {
                 val credential = HwIdAuthProvider.credentialWithToken(accessToken)
                 if (getAGConnectUser() == null) {
                     AGConnectAuth.getInstance().signIn(credential)
-                        .addOnSuccessListener { signInResult: SignInResult ->
-                            val user = signInResult.user
-                            Toast.makeText(this@HuaweiIdActivity, user.uid, Toast.LENGTH_LONG)
-                                .show()
-                            getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
-                        }
-                        .addOnFailureListener { e: java.lang.Exception ->
-                            e.printStackTrace()
-                            val message = checkError(e)
-                            Toast.makeText(
-                                this@HuaweiIdActivity,
-                                message,
-                                Toast.LENGTH_LONG
-                            ).show()
-                            tvResults.text = message
-                        }
+                            .addOnSuccessListener { signInResult ->
+                                val user = signInResult.user
+                                Toast.makeText(this@HuaweiIdActivity, user.uid, Toast.LENGTH_LONG)
+                                        .show()
+                                getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
+                            }
+                            .addOnFailureListener { e ->
+                                e.printStackTrace()
+                                val message = checkError(e)
+                                Toast.makeText(
+                                        this@HuaweiIdActivity,
+                                        message,
+                                        Toast.LENGTH_LONG
+                                ).show()
+                                results.text = message
+                            }
                 } else {
                     val user = getAGConnectUser()
                     Toast.makeText(this@HuaweiIdActivity, user?.uid, Toast.LENGTH_LONG).show()
@@ -143,9 +135,9 @@ class HuaweiIdActivity : BaseActivity() {
                 }
             } else {
                 Toast.makeText(
-                    this@HuaweiIdActivity,
-                    "HwID signIn failed" + authHuaweiIdTask.exception.message,
-                    Toast.LENGTH_LONG
+                        this@HuaweiIdActivity,
+                        "HwID signIn failed" + authHuaweiIdTask.exception.message,
+                        Toast.LENGTH_LONG
                 ).show()
             }
         } else if (requestCode == LINK_CODE) {
@@ -154,28 +146,31 @@ class HuaweiIdActivity : BaseActivity() {
                 val huaweiAccount = authHuaweiIdTask.result
                 val credential = HwIdAuthProvider.credentialWithToken(huaweiAccount.accessToken)
                 getAGConnectUser()!!.link(credential)
-                    .addOnSuccessListener { signInResult ->
-                        val user = signInResult.user
-                        Toast.makeText(this@HuaweiIdActivity, user.uid, Toast.LENGTH_LONG)
-                            .show()
-                        getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
-                    }
-                    .addOnFailureListener { e ->
-                        e.printStackTrace()
-                        val message = checkError(e)
-                        Toast.makeText(
-                            this@HuaweiIdActivity,
-                            message,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        tvResults.text = message
-                    }
+                        .addOnSuccessListener { signInResult ->
+                            val user = signInResult.user
+                            Toast.makeText(this@HuaweiIdActivity, user.uid, Toast.LENGTH_LONG)
+                                    .show()
+                            getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
+                        }
+                        .addOnFailureListener { e ->
+                            e.printStackTrace()
+                            val message = checkError(e)
+                            Toast.makeText(
+                                    this@HuaweiIdActivity,
+                                    message,
+                                    Toast.LENGTH_LONG
+                            ).show()
+                            results.text = message
+                        }
             } else {
-                Log.e(
-                    TAG,
-                    "Link is failed : " + (authHuaweiIdTask.exception as ApiException).statusCode
-                )
+                Log.e(TAG, "Link is failed : " + (authHuaweiIdTask.exception as ApiException).statusCode)
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "HuaweiIdActivity"
+        private const val HUAWEI_ID_SIGN_IN = 8000
+        private const val LINK_CODE = 8002
     }
 }

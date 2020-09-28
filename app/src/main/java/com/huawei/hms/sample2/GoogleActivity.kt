@@ -35,34 +35,26 @@ import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 import net.openid.appauth.*
 
-//author Ivantsov Alexey
 class GoogleActivity : BaseActivity() {
-    private val TAG = GoogleActivity::class.java.simpleName
 
-    private val GOOGLE_SIGN_CODE = 9901
-    private val LINK_CODE = 9902
-    private var client: GoogleSignInClient? = null
-
-    private val USED_INTENT = "USED_INTENT"
-
-    private val action = "com.example.authservice.HANDLE_AUTHORIZATION_RESPONSE"
+    private lateinit var client: GoogleSignInClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_login)
         val options =
-            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
-                .requestEmail()
-                .build()
+                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(getString(R.string.server_client_id))
+                        .requestEmail()
+                        .build()
         client = GoogleSignIn.getClient(this, options)
 
-        btnLogin.setOnClickListener {
+        buttonLogin.setOnClickListener {
             login()
         }
 
-        btnLinkUnlink.setOnClickListener {
+        buttonLinkage.setOnClickListener {
             link()
         }
 
@@ -73,13 +65,13 @@ class GoogleActivity : BaseActivity() {
 
     private fun isGmsAvailable(context: Context): Boolean {
         return ConnectionResult.SUCCESS == GoogleApiAvailability.getInstance()
-            .isGooglePlayServicesAvailable(context)
+                .isGooglePlayServicesAvailable(context)
     }
 
     private fun login() {
         if (isGmsAvailable(this))
         /** тут мы пробуем авторизироваться стандартными средствами GMS*/
-            startActivityForResult(client?.signInIntent, GOOGLE_SIGN_CODE)
+            startActivityForResult(client.signInIntent, GOOGLE_SIGN_CODE)
         else {
             /** этот метод применяем на телефонах HMS-only*/
             loginLinkWithOpenid()
@@ -90,7 +82,7 @@ class GoogleActivity : BaseActivity() {
         if (!isProviderLinked(getAGConnectUser(), AGConnectAuthCredential.Google_Provider)) {
             if (isGmsAvailable(this))
             /** тут мы пробуем авторизироваться стандартными средствами GMS*/
-                startActivityForResult(client?.signInIntent, LINK_CODE)
+                startActivityForResult(client.signInIntent, LINK_CODE)
             else {
                 loginLinkWithOpenid()
             }
@@ -102,17 +94,17 @@ class GoogleActivity : BaseActivity() {
     //этот метод применяем на телефонах HMS-only
     private fun loginLinkWithOpenid() {
         val serviceConfiguration =
-            AuthorizationServiceConfiguration(
-                Uri.parse("https://accounts.google.com/o/oauth2/v2/auth") /* auth endpoint */,
-                Uri.parse("https://www.googleapis.com/oauth2/v4/token") /* token endpoint */
-            )
+                AuthorizationServiceConfiguration(
+                        Uri.parse("https://accounts.google.com/o/oauth2/v2/auth") /* auth endpoint */,
+                        Uri.parse("https://www.googleapis.com/oauth2/v4/token") /* token endpoint */
+                )
         val redirectUri = Uri.parse("com.example.authservice:/oauth2callback")
         val clientId = getString(R.string.google_app_id)
         val builder = AuthorizationRequest.Builder(
-            serviceConfiguration,
-            clientId,
-            AuthorizationRequest.RESPONSE_TYPE_CODE,
-            redirectUri
+                serviceConfiguration,
+                clientId,
+                AuthorizationRequest.RESPONSE_TYPE_CODE,
+                redirectUri
         )
         builder.setScopes(AuthorizationService.SCOPE_PROFILE)
         val request = builder.build()
@@ -120,12 +112,7 @@ class GoogleActivity : BaseActivity() {
         val authorizationService = AuthorizationService(this)
 
         val postAuthorizationIntent = Intent(action)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            request.hashCode(),
-            postAuthorizationIntent,
-            0
-        )
+        val pendingIntent = PendingIntent.getActivity(this, request.hashCode(), postAuthorizationIntent, 0)
         authorizationService.performAuthorizationRequest(request, pendingIntent)
         finish()
     }
@@ -143,69 +130,56 @@ class GoogleActivity : BaseActivity() {
     private fun unlink() {
         if (AGConnectAuth.getInstance().currentUser != null) {
             AGConnectAuth.getInstance().currentUser
-                .unlink(AGConnectAuthCredential.Google_Provider)
-                .addOnSuccessListener { signInResult ->
-                    val user = signInResult.user
-                    Toast.makeText(this@GoogleActivity, user.uid, Toast.LENGTH_LONG)
-                        .show()
-                    getUserInfoAndSwitchUI(AGConnectAuthCredential.Google_Provider)
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, e.message.toString())
-                    val message = checkError(e)
-                    Toast.makeText(
-                        this@GoogleActivity,
-                        message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = message
-                }
+                    .unlink(AGConnectAuthCredential.Google_Provider)
+                    .addOnSuccessListener { signInResult ->
+                        val user = signInResult.user
+                        Toast.makeText(this@GoogleActivity, user.uid, Toast.LENGTH_LONG).show()
+                        getUserInfoAndSwitchUI(AGConnectAuthCredential.Google_Provider)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, e.message.toString())
+                        val message = checkError(e)
+                        Toast.makeText(this@GoogleActivity, message, Toast.LENGTH_LONG).show()
+                        results.text = message
+                    }
         }
     }
 
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         //если мы пробуем авторизироваться стандартными средствами GMS, то ответ будет тут
         if (requestCode == GOOGLE_SIGN_CODE) {
             GoogleSignIn.getSignedInAccountFromIntent(data)
-                .addOnSuccessListener { googleSignInAccount: GoogleSignInAccount ->
-                    val credential =
-                        GoogleAuthProvider.credentialWithToken(googleSignInAccount.idToken)
-                    //Ок, мы авторизированы, делаем работу дальше...
-                    AGConnectAuthLogin(credential)
-                }
-                .addOnFailureListener { e: java.lang.Exception ->
-                    val error_message = "Google login failed: " + e.message
-                    Toast.makeText(
-                        this@GoogleActivity,
-                        error_message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = error_message
-                }
+                    .addOnSuccessListener { googleSignInAccount ->
+                        val credential =
+                                GoogleAuthProvider.credentialWithToken(googleSignInAccount.idToken)
+                        //Ок, мы авторизированы, делаем работу дальше...
+                        connectAuthLogin(credential)
+                    }
+                    .addOnFailureListener { e ->
+                        val error_message = "Google login failed: " + e.message
+                        Toast.makeText(
+                                this@GoogleActivity,
+                                error_message,
+                                Toast.LENGTH_LONG
+                        ).show()
+                        results.text = error_message
+                    }
         }
         //если мы пробуем авторизироваться стандартными средствами GMS, то ответ будет тут
         else if (requestCode == LINK_CODE) {
             GoogleSignIn.getSignedInAccountFromIntent(data)
-                .addOnSuccessListener { googleSignInAccount: GoogleSignInAccount ->
-                    val credential =
-                        GoogleAuthProvider.credentialWithToken(googleSignInAccount.idToken)
-                    //Ок, мы авторизированы, делаем работу дальше...
-                    AGConnectAuthLink(credential)
-                }
-                .addOnFailureListener { e: java.lang.Exception ->
-                    val error_message = "Google login failed: " + e.message
-                    Toast.makeText(
-                        this@GoogleActivity,
-                        error_message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = error_message
-                }
+                    .addOnSuccessListener { googleSignInAccount: GoogleSignInAccount ->
+                        val credential =
+                                GoogleAuthProvider.credentialWithToken(googleSignInAccount.idToken)
+                        //Ок, мы авторизированы, делаем работу дальше...
+                        connectAuthLink(credential)
+                    }
+                    .addOnFailureListener { e ->
+                        val errorMessage = "Google login failed: " + e.message
+                        Toast.makeText(this@GoogleActivity, errorMessage, Toast.LENGTH_LONG).show()
+                        results.text = errorMessage
+                    }
         }
     }
 
@@ -233,7 +207,7 @@ class GoogleActivity : BaseActivity() {
         val authState = AuthState(response, error)
         if (response != null) {
             Log.i(
-                TAG, String.format("Handled Authorization Response %s ", authState.toJsonString())
+                    TAG, String.format("Handled Authorization Response %s ", authState.toJsonString())
             )
             val service = AuthorizationService(this)
             service.performTokenRequest(response.createTokenExchangeRequest()) { tokenResponse, exception ->
@@ -241,22 +215,21 @@ class GoogleActivity : BaseActivity() {
                     Log.w(TAG, "Token Exchange failed $exception")
                 } else {
                     Log.i(
-                        TAG,
-                        String.format(
-                            "Token Response [ Access Token: %s, ID Token: %s ]",
-                            tokenResponse?.accessToken,
-                            tokenResponse?.idToken
-                        )
+                            TAG,
+                            String.format(
+                                    "Token Response [ Access Token: %s, ID Token: %s ]",
+                                    tokenResponse?.accessToken,
+                                    tokenResponse?.idToken
+                            )
                     )
                     //AGC will come in screen after getting token
                     //Obtain the **idToken** after login authorization.
                     if (tokenResponse != null) {
-                        val credential =
-                            GoogleAuthProvider.credentialWithToken(tokenResponse.idToken)
-                        if (getAGConnectUser() == null)
-                            AGConnectAuthLogin(credential)
-                        else {
-                            AGConnectAuthLink(credential)
+                        val credential = GoogleAuthProvider.credentialWithToken(tokenResponse.idToken)
+                        if (getAGConnectUser() == null) {
+                            connectAuthLogin(credential)
+                        } else {
+                            connectAuthLink(credential)
                         }
                     }
                 }
@@ -265,55 +238,48 @@ class GoogleActivity : BaseActivity() {
     }
 
     //Авторизируемся через AGConnectAuth с учетными данными из Google
-    private fun AGConnectAuthLogin(credential: AGConnectAuthCredential) {
+    private fun connectAuthLogin(credential: AGConnectAuthCredential) {
         AGConnectAuth.getInstance().signIn(credential)
-            .addOnSuccessListener { signInResult ->
-                val user = signInResult.user
-                Toast.makeText(
-                    this@GoogleActivity,
-                    user.uid,
-                    Toast.LENGTH_LONG
-                ).show()
-                getUserInfoAndSwitchUI(AGConnectAuthCredential.Google_Provider)
-            }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-                val message = checkError(e)
-                Toast.makeText(
-                    this@GoogleActivity,
-                    message,
-                    Toast.LENGTH_LONG
-                ).show()
-                tvResults.text = message
-            }
+                .addOnSuccessListener { signInResult ->
+                    val user = signInResult.user
+                    Toast.makeText(this@GoogleActivity, user.uid,Toast.LENGTH_LONG).show()
+                    getUserInfoAndSwitchUI(AGConnectAuthCredential.Google_Provider)
+                }
+                .addOnFailureListener { e ->
+                    e.printStackTrace()
+                    val message = checkError(e)
+                    Toast.makeText(this@GoogleActivity, message, Toast.LENGTH_LONG).show()
+                    results.text = message
+                }
     }
 
     //Линкуемся через AGConnectAuth с учетными данными из Google
-    private fun AGConnectAuthLink(credential: AGConnectAuthCredential) {
+    private fun connectAuthLink(credential: AGConnectAuthCredential) {
         getAGConnectUser()!!.link(credential)
-            .addOnSuccessListener { signInResult ->
-                val user = signInResult.user
-                Toast.makeText(
-                    this@GoogleActivity,
-                    user.uid,
-                    Toast.LENGTH_LONG
-                ).show()
-                getUserInfoAndSwitchUI(AGConnectAuthCredential.Google_Provider)
-            }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-                val message = checkError(e)
-                Toast.makeText(
-                    this@GoogleActivity,
-                    message,
-                    Toast.LENGTH_LONG
-                ).show()
-                tvResults.text = message
-            }
+                .addOnSuccessListener { signInResult ->
+                    val user = signInResult.user
+                    Toast.makeText(this@GoogleActivity, user.uid, Toast.LENGTH_LONG).show()
+                    getUserInfoAndSwitchUI(AGConnectAuthCredential.Google_Provider)
+                }
+                .addOnFailureListener { e ->
+                    e.printStackTrace()
+                    val message = checkError(e)
+                    Toast.makeText(this@GoogleActivity, message, Toast.LENGTH_LONG).show()
+                    results.text = message
+                }
     }
 
     override fun onStart() {
         super.onStart()
         checkIntent(intent)
+    }
+
+    companion object {
+        private const val TAG = "GoogleActivity"
+        private const val GOOGLE_SIGN_CODE = 9901
+        private const val LINK_CODE = 9902
+        private const val USED_INTENT = "USED_INTENT"
+
+        private const val action = "com.example.authservice.HANDLE_AUTHORIZATION_RESPONSE"
     }
 }

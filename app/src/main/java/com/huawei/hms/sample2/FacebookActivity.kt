@@ -31,7 +31,6 @@ import com.huawei.agconnect.auth.FacebookAuthProvider
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
-//author Ivantsov Alexey
 class FacebookActivity : BaseActivity() {
     private val callbackManager = CallbackManager.Factory.create()
     private val TAG = FacebookActivity::class.simpleName
@@ -40,13 +39,13 @@ class FacebookActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        btnLinkUnlink.visibility = View.GONE
+        buttonLinkage.visibility = View.GONE
 
-        btnLogin.setOnClickListener {
+        buttonLogin.setOnClickListener {
             login()
         }
 
-        btnLinkUnlink.setOnClickListener {
+        buttonLinkage.setOnClickListener {
             link()
         }
 
@@ -57,78 +56,66 @@ class FacebookActivity : BaseActivity() {
 
     private fun login() {
         LoginManager.getInstance()
-            .logInWithReadPermissions(this, listOf("public_profile", "email"))
-        LoginManager.getInstance()
-            .registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
-                override fun onSuccess(loginResult: LoginResult) {
-                    val token = loginResult.accessToken.token
-                    val credential = FacebookAuthProvider.credentialWithToken(token)
-                    AGConnectAuth.getInstance().signIn(credential)
-                        .addOnSuccessListener { signInResult ->
-                            var user = signInResult.user
-                            Toast.makeText(this@FacebookActivity, user.uid, Toast.LENGTH_LONG)
-                                .show()
-                            getUserInfoAndSwitchUI(AGConnectAuthCredential.Facebook_Provider)
-                        }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(this@FacebookActivity, e.message, Toast.LENGTH_LONG)
-                                .show()
-                            tvResults.text = e.message
-                        }
-                }
-
-                override fun onCancel() {
-                    Toast.makeText(this@FacebookActivity, "Cancel", Toast.LENGTH_LONG)
-                        .show()
-                }
-
-                override fun onError(error: FacebookException) {
-                    Toast.makeText(this@FacebookActivity, error.message, Toast.LENGTH_LONG)
-                        .show()
-                    tvResults.text = error.message
-                }
-            })
-    }
-
-    private fun link() {
-        if (!isProviderLinked(getAGConnectUser(), AGConnectAuthCredential.Facebook_Provider)) {
-            LoginManager.getInstance()
                 .logInWithReadPermissions(this, listOf("public_profile", "email"))
-            LoginManager.getInstance()
+        LoginManager.getInstance()
                 .registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
                     override fun onSuccess(loginResult: LoginResult) {
                         val token = loginResult.accessToken.token
                         val credential = FacebookAuthProvider.credentialWithToken(token)
-                        getAGConnectUser()!!.link(credential)
-                            .addOnSuccessListener { signInResult ->
-                                var user = signInResult.user
-                                Toast.makeText(this@FacebookActivity, user.uid, Toast.LENGTH_LONG)
-                                    .show()
-                                getUserInfoAndSwitchUI(AGConnectAuthCredential.Facebook_Provider)
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e(TAG, e.message.toString())
-                                val message = checkError(e)
-                                Toast.makeText(
-                                    this@FacebookActivity,
-                                    message,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                tvResults.text = message
-                            }
+                        AGConnectAuth.getInstance().signIn(credential)
+                                .addOnSuccessListener { signInResult ->
+                                    val user = signInResult.user
+                                    Toast.makeText(this@FacebookActivity, user.uid, Toast.LENGTH_LONG).show()
+                                    getUserInfoAndSwitchUI(AGConnectAuthCredential.Facebook_Provider)
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(this@FacebookActivity, e.message, Toast.LENGTH_LONG).show()
+                                    results.text = e.message
+                                }
                     }
 
                     override fun onCancel() {
                         Toast.makeText(this@FacebookActivity, "Cancel", Toast.LENGTH_LONG)
-                            .show()
+                                .show()
                     }
 
                     override fun onError(error: FacebookException) {
                         Toast.makeText(this@FacebookActivity, error.message, Toast.LENGTH_LONG)
-                            .show()
-                        tvResults.text = error.message
+                                .show()
+                        results.text = error.message
                     }
                 })
+    }
+
+    private fun link() {
+        if (!isProviderLinked(getAGConnectUser(), AGConnectAuthCredential.Facebook_Provider)) {
+            LoginManager.getInstance().logInWithReadPermissions(this, listOf("public_profile", "email"))
+            LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                override fun onSuccess(loginResult: LoginResult) {
+                    val token = loginResult.accessToken.token
+                    val credential = FacebookAuthProvider.credentialWithToken(token)
+                    getAGConnectUser()!!.link(credential).addOnSuccessListener { signInResult ->
+                        val user = signInResult.user
+                        Toast.makeText(this@FacebookActivity, user.uid, Toast.LENGTH_LONG).show()
+                        getUserInfoAndSwitchUI(AGConnectAuthCredential.Facebook_Provider)
+                    }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG, e.message.toString())
+                                val message = checkError(e)
+                                Toast.makeText(this@FacebookActivity, message, Toast.LENGTH_LONG).show()
+                                results.text = message
+                            }
+                }
+
+                override fun onCancel() {
+                    Toast.makeText(this@FacebookActivity, "Cancel", Toast.LENGTH_LONG).show()
+                }
+
+                override fun onError(error: FacebookException) {
+                    Toast.makeText(this@FacebookActivity, error.message, Toast.LENGTH_LONG).show()
+                    results.text = error.message
+                }
+            })
         } else {
             unlink()
         }
@@ -140,25 +127,23 @@ class FacebookActivity : BaseActivity() {
     }
 
     private fun unlink() {
-        if (AGConnectAuth.getInstance().currentUser != null) {
-            AGConnectAuth.getInstance().currentUser
-                .unlink(AGConnectAuthCredential.Facebook_Provider)
-                .addOnSuccessListener { signInResult ->
-                    var user = signInResult.user
-                    Toast.makeText(this@FacebookActivity, user.uid, Toast.LENGTH_LONG)
-                        .show()
-                    getUserInfoAndSwitchUI(AGConnectAuthCredential.Facebook_Provider)
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, e.message.toString())
-                    val message = checkError(e)
-                    Toast.makeText(
-                        this@FacebookActivity,
-                        message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    tvResults.text = message
-                }
+        AGConnectAuth.getInstance().currentUser?.let { currentUser ->
+            currentUser.unlink(AGConnectAuthCredential.Facebook_Provider)
+                    .addOnSuccessListener { signInResult ->
+                        val user = signInResult.user
+                        Toast.makeText(this@FacebookActivity, user.uid, Toast.LENGTH_LONG).show()
+                        getUserInfoAndSwitchUI(AGConnectAuthCredential.Facebook_Provider)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, e.message.toString())
+                        val message = checkError(e)
+                        Toast.makeText(
+                                this@FacebookActivity,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show()
+                        results.text = message
+                    }
         }
     }
 
