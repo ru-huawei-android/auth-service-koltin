@@ -31,7 +31,6 @@ import com.huawei.hms.support.hwid.request.HuaweiIdAuthParamsHelper
 import com.huawei.hms.support.hwid.service.HuaweiIdAuthService
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
-import java.util.*
 
 class HuaweiIdActivity : BaseActivity() {
 
@@ -43,8 +42,7 @@ class HuaweiIdActivity : BaseActivity() {
         setContentView(R.layout.activity_login)
 
         val authParams = HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM)
-        val scopeList: MutableList<Scope> = ArrayList()
-        scopeList.add(Scope(ACCOUNT_BASEPROFILE))
+        val scopeList = listOf(Scope(ACCOUNT_BASEPROFILE))
         authParams.setScopeList(scopeList)
         huaweiIdAuthParams = authParams.setAccessToken().createParams()
         huaweiIdAuthService = HuaweiIdAuthManager.getService(this@HuaweiIdActivity, huaweiIdAuthParams)
