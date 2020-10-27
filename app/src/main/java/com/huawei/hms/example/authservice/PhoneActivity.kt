@@ -1,4 +1,4 @@
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.Manifest.permission.READ_PHONE_NUMBERS
 import android.Manifest.permission.READ_PHONE_STATE
@@ -337,7 +337,7 @@ class PhoneActivity : BaseActivity() {
                 editTextPhone.setText(phoneNumber)
             } else {
                 Log.i(
-                    TAG,
+                        TAG,
                     "onRequestPermissionsResult: apply READ_PHONE_STATE & READ_PHONE_NUMBERS PERMISSION failed"
                 )
                 results.text =

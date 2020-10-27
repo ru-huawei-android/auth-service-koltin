@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.content.Intent
 import android.os.Bundle
@@ -24,7 +24,7 @@ import com.huawei.agconnect.auth.AGConnectAuthCredential
 import com.huawei.agconnect.auth.HwIdAuthProvider
 import com.huawei.hms.common.ApiException
 import com.huawei.hms.support.api.entity.auth.Scope
-import com.huawei.hms.support.api.entity.hwid.HwIDConstant
+import com.huawei.hms.support.api.entity.common.CommonConstant.SCOPE.ACCOUNT_BASEPROFILE
 import com.huawei.hms.support.hwid.HuaweiIdAuthManager
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParams
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParamsHelper
@@ -44,7 +44,7 @@ class HuaweiIdActivity : BaseActivity() {
 
         val authParams = HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM)
         val scopeList: MutableList<Scope> = ArrayList()
-        scopeList.add(Scope(HwIDConstant.SCOPE.ACCOUNT_BASEPROFILE))
+        scopeList.add(Scope(ACCOUNT_BASEPROFILE))
         authParams.setScopeList(scopeList)
         huaweiIdAuthParams = authParams.setAccessToken().createParams()
         huaweiIdAuthService = HuaweiIdAuthManager.getService(this@HuaweiIdActivity, huaweiIdAuthParams)
@@ -134,6 +134,7 @@ class HuaweiIdActivity : BaseActivity() {
                     getUserInfoAndSwitchUI(AGConnectAuthCredential.HMS_Provider)
                 }
             } else {
+                Log.e(TAG, "authHuaweiIdTask.exception.message: ${authHuaweiIdTask.exception.message}")
                 Toast.makeText(
                         this@HuaweiIdActivity,
                         "HwID signIn failed" + authHuaweiIdTask.exception.message,
