@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.content.Intent
 import android.os.Bundle
@@ -42,7 +42,7 @@ class HuaweiGameIdActivity : BaseActivity() {
         setContentView(R.layout.activity_login)
 
         HuaweiMobileServicesUtil.setApplication(application)
-        val appsClient = JosApps.getJosAppsClient(this, null)
+        val appsClient = JosApps.getJosAppsClient(this)
         appsClient.init()
         val authParams =
                 HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM_GAME)
@@ -223,6 +223,5 @@ class HuaweiGameIdActivity : BaseActivity() {
         private const val TAG = "HuaweiGameIdActivity"
         private const val HUAWEI_GAME_SIGN_IN = 7000
         private const val LINK_CODE = 7002
-
     }
 }

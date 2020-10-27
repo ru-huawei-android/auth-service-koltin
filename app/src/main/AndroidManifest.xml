@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.huawei.hms.auth">
+    package="com.huawei.hms.example.authservice">
 
     <!-- Grants the READ_PHONE_STATE permission only on devices that run Android 10 (API level 29) and lower. -->
     <uses-permission
@@ -16,13 +15,13 @@
         android:required="false" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.huawei.hms.auth.MainActivity">
+        <activity android:name="com.huawei.hms.example.authservice.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,7 +30,7 @@
         </activity>
 
         <activity
-            android:name="com.huawei.hms.auth.FacebookActivity"
+            android:name="com.huawei.hms.example.authservice.FacebookActivity"
             android:label="@string/facebook_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -60,42 +59,42 @@
         </activity>
 
         <activity
-            android:name="com.huawei.hms.auth.PhoneActivity"
+            android:name="com.huawei.hms.example.authservice.PhoneActivity"
             android:label="@string/mobile_phone_number_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.huawei.hms.auth.TwitterActivity"
+            android:name="com.huawei.hms.example.authservice.TwitterActivity"
             android:label="@string/twitter_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.huawei.hms.auth.EmailActivity"
+            android:name="com.huawei.hms.example.authservice.EmailActivity"
             android:label="@string/e_mail_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.huawei.hms.auth.AnonymousLogin"
+            android:name="com.huawei.hms.example.authservice.AnonymousLogin"
             android:label="@string/anonymous_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.huawei.hms.auth.HuaweiIdActivity"
+            android:name="com.huawei.hms.example.authservice.HuaweiIdActivity"
             android:label="@string/huawei_id_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.huawei.hms.auth.HuaweiGameIdActivity"
+            android:name="com.huawei.hms.example.authservice.HuaweiGameIdActivity"
             android:label="@string/huawei_game_service_login">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -103,7 +102,7 @@
         </activity>
 
         <activity
-            android:name="com.huawei.hms.auth.GoogleActivity"
+            android:name="com.huawei.hms.example.authservice.GoogleActivity"
             android:label="@string/google_login">
             <intent-filter>
                 <action android:name="com.example.authservice.HANDLE_AUTHORIZATION_RESPONSE" />
@@ -120,13 +119,16 @@
 
                 <data android:scheme="com.example.authservice" />
             </intent-filter>
-        </activity> <!-- Google Game START -->
+        </activity>
+        <!-- Google Game START -->
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"
             android:value="@string/google_app_id" />
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" /> <!-- Google Game END -->
+            android:value="@integer/google_play_services_version" />
+        <!-- Google Game END -->
+
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />

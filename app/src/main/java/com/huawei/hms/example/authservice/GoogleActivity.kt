@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.app.PendingIntent
 import android.content.Context
@@ -157,13 +157,13 @@ class GoogleActivity : BaseActivity() {
                         connectAuthLogin(credential)
                     }
                     .addOnFailureListener { e ->
-                        val error_message = "Google login failed: " + e.message
+                        val errorMessage = "Google login failed: " + e.message
                         Toast.makeText(
                                 this@GoogleActivity,
-                                error_message,
+                                errorMessage,
                                 Toast.LENGTH_LONG
                         ).show()
-                        results.text = error_message
+                        results.text = errorMessage
                     }
         }
         //если мы пробуем авторизироваться стандартными средствами GMS, то ответ будет тут

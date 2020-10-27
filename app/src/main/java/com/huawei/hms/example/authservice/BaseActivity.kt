@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.view.View
 import android.widget.ImageView
@@ -84,7 +84,7 @@ open class BaseActivity : AppCompatActivity() {
                 else -> exception.localizedMessage
             }
         } else {
-            exception.localizedMessage
+            exception.localizedMessage ?: "Unexpected error!"
         }
     }
 

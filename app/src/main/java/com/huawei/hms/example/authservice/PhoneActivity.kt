@@ -1,4 +1,4 @@
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.Manifest.permission.READ_PHONE_NUMBERS
 import android.Manifest.permission.READ_PHONE_STATE
@@ -21,21 +21,20 @@ import kotlinx.android.synthetic.main.activity_phone_login.*
 import kotlinx.android.synthetic.main.bottom_info.*
 import java.util.*
 
-private const val TAG = "PhoneActivity"
 
 class PhoneActivity : BaseActivity() {
 
-    var hasPhonePermission: Boolean = false
+    private var hasPhonePermission: Boolean = false
 
-    var verifyCode: String = ""
-    var phoneNumber: String = ""
+    private var verifyCode: String = ""
+    private var phoneNumber: String = ""
 
     /**
      * Переменная для внутренней логики - внедрено для демо
      * Если True - AGConnectAuthCredential будет сформирован с паролем
      * Если False - AGConnectAuthCredential будет сформирован с кодом верификации, пароль не требуется
      */
-    val credentialType: Boolean = false
+    private val credentialType: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.O)
     val permissions = arrayOf(
@@ -52,7 +51,7 @@ class PhoneActivity : BaseActivity() {
         btnPhoneCode.setOnClickListener {
             phoneNumber = editTextPhone.text.toString()
 
-            if (phoneNumber.isNullOrEmpty()) {
+            if (phoneNumber.isEmpty()) {
                 Toast.makeText(
                     this@PhoneActivity,
                     "Please put the phone number",
@@ -118,16 +117,15 @@ class PhoneActivity : BaseActivity() {
          */
         val task: Task<VerifyCodeResult> =
             PhoneAuthProvider.requestVerifyCode(
-                phoneNumber!!.substring(0, 2),
-                phoneNumber!!.substring(2),
+                phoneNumber.substring(0, 2),
+                phoneNumber.substring(2),
                 settings
             )
         task.addOnSuccessListener {
             /**
              * Запрос на код подтверждения отправлен успешно.
              */
-                verifyResults: VerifyCodeResult ->
-            llCodeInput.visibility = View.VISIBLE
+        llCodeInput.visibility = View.VISIBLE
             Toast.makeText(
                 this@PhoneActivity,
                 "Please wait verification code, and then type it and press OK",
@@ -151,6 +149,7 @@ class PhoneActivity : BaseActivity() {
         /**
          * Зарегистрирация аккаунта в AppGallery Connect, используя номер мобильного телефона.
          */
+        @Suppress("ConstantConditionIf")
         val phoneUser = if (credentialType) {
             PhoneUser.Builder()
                 /**Код страны (международный), для России это 7, вводится без знака +*/
@@ -176,7 +175,7 @@ class PhoneActivity : BaseActivity() {
                 .build()
         }
         AGConnectAuth.getInstance().createUser(phoneUser)
-            .addOnSuccessListener { result ->
+            .addOnSuccessListener {
                 /**
                  *  После создания учетной записи пользователь входит в систему
                  */
@@ -196,6 +195,7 @@ class PhoneActivity : BaseActivity() {
 
     private fun signInToAppGalleryConnect() {
         /** Формируем AGConnectAuthCredential */
+        @Suppress("ConstantConditionIf")
         val credential: AGConnectAuthCredential = if (credentialType) {
             /** С паролем */
             PhoneAuthProvider.credentialWithPassword(
@@ -337,12 +337,16 @@ class PhoneActivity : BaseActivity() {
                 editTextPhone.setText(phoneNumber)
             } else {
                 Log.i(
-                    TAG,
+                        TAG,
                     "onRequestPermissionsResult: apply READ_PHONE_STATE & READ_PHONE_NUMBERS PERMISSION failed"
                 )
                 results.text =
                     "onRequestPermissionsResult: apply READ_PHONE_STATE PERMISSION &READ_PHONE_NUMBERS failed"
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "PhoneActivity"
     }
 }

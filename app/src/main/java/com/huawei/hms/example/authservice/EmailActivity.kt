@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.huawei.hms.auth
+package com.huawei.hms.example.authservice
 
 import android.os.Bundle
 import android.util.Log
@@ -27,17 +27,16 @@ import java.util.*
 
 //author Ivantsov Alexey
 class EmailActivity : BaseActivity() {
-    private val TAG = EmailActivity::class.simpleName
 
-    var verifyCode: String? = ""
-    var email: String? = ""
+    private var verifyCode: String? = ""
+    private var email: String? = ""
 
     /**
      * Переменная для внутренней логики - для демо
      * Если True - AGConnectAuthCredential будет сформирован с паролем
      * Если False - AGConnectAuthCredential будет сформирован с кодом верификации, пароль не требуется
      * */
-    val credentialType: Boolean = false
+    private val credentialType: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,11 +112,10 @@ class EmailActivity : BaseActivity() {
                 email,
                 settings
             )
+        /**
+         * Запрос на код подтверждения отправлен успешно.
+         * */
         task.addOnSuccessListener {
-            /**
-             * Запрос на код подтверждения отправлен успешно.
-             * */
-                verifyResults: VerifyCodeResult ->
             llCodeInput.visibility = View.VISIBLE
             Toast.makeText(
                 this@EmailActivity,
@@ -140,6 +138,7 @@ class EmailActivity : BaseActivity() {
         /**
          * Регистрирация аккаунта в AppGallery Connect, используя e-mail.
          * */
+        @Suppress("ConstantConditionIf")
         val emailUser = if (credentialType) {
             EmailUser.Builder()
                 .setEmail(email)
@@ -180,6 +179,7 @@ class EmailActivity : BaseActivity() {
     //TODO error in documentation credentialWithPassowrd
     private fun signInToAppGalleryConnect() {
         /** Формируем AGConnectAuthCredential */
+        @Suppress("ConstantConditionIf")
         val credential: AGConnectAuthCredential = if (credentialType) {
             /** С паролем */
             EmailAuthProvider.credentialWithPassword(
@@ -245,5 +245,9 @@ class EmailActivity : BaseActivity() {
         llCodeInput.visibility = View.GONE
         btnCreateUserInAg.visibility = View.GONE
         btnEmailLogout.visibility = View.GONE
+    }
+
+    companion object {
+        private const val TAG = "EmailActivity"
     }
 }
