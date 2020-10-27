@@ -28,7 +28,6 @@ import com.twitter.sdk.android.core.identity.TwitterAuthClient
 import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
-private const val TAG = "TwitterActivity"
 
 class TwitterActivity : BaseActivity() {
     private lateinit var twitterAuthClient: TwitterAuthClient
@@ -160,5 +159,9 @@ class TwitterActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         twitterAuthClient.onActivityResult(requestCode, resultCode, data)
+    }
+
+    companion object {
+        private const val TAG = "TwitterActivity"
     }
 }

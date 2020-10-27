@@ -84,7 +84,7 @@ open class BaseActivity : AppCompatActivity() {
                 else -> exception.localizedMessage
             }
         } else {
-            exception.localizedMessage
+            exception.localizedMessage ?: "Unexpected error!"
         }
     }
 

@@ -32,8 +32,6 @@ import kotlinx.android.synthetic.main.bottom_info.*
 import kotlinx.android.synthetic.main.buttons_lll.*
 
 class FacebookActivity : BaseActivity() {
-    private val callbackManager = CallbackManager.Factory.create()
-    private val TAG = FacebookActivity::class.simpleName
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,5 +153,10 @@ class FacebookActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         callbackManager.onActivityResult(requestCode, resultCode, data)
+    }
+
+    companion object {
+        private val callbackManager = CallbackManager.Factory.create()
+        private const val TAG = "FacebookActivity"
     }
 }
