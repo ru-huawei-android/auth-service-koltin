@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 30
@@ -11,24 +11,19 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
         release {
-            release {
-                storeFile file("HuaweiSampleKey.jks")
-                storePassword "HuaweiSampleKey"
-                keyAlias "HuaweiSampleKey"
-                keyPassword "HuaweiSampleKey"
-            }
+            storeFile file("HuaweiSampleKey.jks")
+            storePassword "HuaweiSampleKey"
+            keyAlias "HuaweiSampleKey"
+            keyPassword "HuaweiSampleKey"
         }
         debug {
-            release {
-                storeFile file("HuaweiSampleKey.jks")
-                storePassword "HuaweiSampleKey"
-                keyAlias "HuaweiSampleKey"
-                keyPassword "HuaweiSampleKey"
-            }
+            storeFile file("HuaweiSampleKey.jks")
+            storePassword "HuaweiSampleKey"
+            keyAlias "HuaweiSampleKey"
+            keyPassword "HuaweiSampleKey"
         }
     }
     buildTypes {
@@ -83,7 +78,8 @@ dependencies {
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'com.google.android.material:material:1.2.1'
     //noinspection GradleDependency
-    implementation 'net.openid:appauth:0.2.0' /** Нам нужна версия 0.2.0 на ней базируется кодлаба от Google*/
+    implementation 'net.openid:appauth:0.2.0'
+    /** Нам нужна версия 0.2.0 на ней базируется кодлаба от Google*/
 
     //Singleton artifact
     implementation 'io.coil-kt:coil:0.13.0'
