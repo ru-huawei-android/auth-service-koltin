@@ -53,9 +53,10 @@ class PhoneActivity : BaseActivity() {
      * BroadcastReceiver in order to read incoming sms and fill in the verification field.
      * Read more: https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides-V5/readsmsmanager-0000001050050861-V5
      */
-    private val br: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val bundle = intent.extras
+
+    private val br = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val bundle = intent?.extras
             if (bundle != null && ReadSmsConstant.READ_SMS_BROADCAST_ACTION == intent.action) {
                 val status: Status? = bundle.getParcelable(ReadSmsConstant.EXTRA_STATUS)
                 if (status?.statusCode == CommonStatusCodes.TIMEOUT) {
