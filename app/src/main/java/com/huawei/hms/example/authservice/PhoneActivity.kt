@@ -4,7 +4,10 @@ import android.Manifest.permission.READ_PHONE_NUMBERS
 import android.Manifest.permission.READ_PHONE_STATE
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +20,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.huawei.agconnect.auth.*
 import com.huawei.hmf.tasks.Task
+import com.huawei.hms.common.api.CommonStatusCodes
+import com.huawei.hms.support.api.client.Status
+import com.huawei.hms.support.sms.ReadSmsManager
+import com.huawei.hms.support.sms.common.ReadSmsConstant
 import kotlinx.android.synthetic.main.activity_phone_login.*
 import kotlinx.android.synthetic.main.bottom_info.*
 import java.util.*
@@ -38,9 +45,42 @@ class PhoneActivity : BaseActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     val permissions = arrayOf(
-        READ_PHONE_STATE,
-        READ_PHONE_NUMBERS
+            READ_PHONE_STATE,
+            READ_PHONE_NUMBERS
     )
+
+    /**
+     * BroadcastReceiver in order to read incoming sms and fill in the verification field.
+     * Read more: https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides-V5/readsmsmanager-0000001050050861-V5
+     */
+    private val br: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val bundle = intent.extras
+            if (bundle != null && ReadSmsConstant.READ_SMS_BROADCAST_ACTION == intent.action) {
+                val status: Status? = bundle.getParcelable(ReadSmsConstant.EXTRA_STATUS)
+                if (status?.statusCode == CommonStatusCodes.TIMEOUT) {
+
+                    // The service has timed out and no SMS message that meets the requirements is read. The service process ends.
+                    Toast.makeText(
+                            this@PhoneActivity,
+                            getString(R.string.time_out),
+                            Toast.LENGTH_LONG).show()
+                } else if (status?.statusCode == CommonStatusCodes.SUCCESS) {
+                    if (bundle.containsKey(ReadSmsConstant.EXTRA_SMS_MESSAGE)) {
+
+                        // An SMS message that meets the requirement is read. The service process ends.
+                        val result = bundle.getString(ReadSmsConstant.EXTRA_SMS_MESSAGE)
+                        val numberOnly = result?.replace("[^0-9]".toRegex(), "")
+                        Toast.makeText(
+                                this@PhoneActivity,
+                                getString(R.string.success, numberOnly),
+                                Toast.LENGTH_LONG).show()
+                        editTextVerificationCode.setText(numberOnly)
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,12 +93,13 @@ class PhoneActivity : BaseActivity() {
 
             if (phoneNumber.isEmpty()) {
                 Toast.makeText(
-                    this@PhoneActivity,
-                    "Please put the phone number",
-                    Toast.LENGTH_LONG
+                        this@PhoneActivity,
+                        "Please put the phone number",
+                        Toast.LENGTH_LONG
                 ).show()
                 return@setOnClickListener
             }
+            startReadingSms()
             requestVerificationCode()
         }
 
@@ -67,9 +108,9 @@ class PhoneActivity : BaseActivity() {
 
             if (verifyCode.isEmpty()) {
                 Toast.makeText(
-                    this@PhoneActivity,
-                    "Please put the verification code",
-                    Toast.LENGTH_LONG
+                        this@PhoneActivity,
+                        "Please put the verification code",
+                        Toast.LENGTH_LONG
                 ).show()
                 return@setOnClickListener
             }
@@ -85,6 +126,28 @@ class PhoneActivity : BaseActivity() {
 
         btnPhoneLogout.setOnClickListener {
             logout()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(br, IntentFilter(ReadSmsConstant.READ_SMS_BROADCAST_ACTION))
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(br)
+    }
+
+    private fun startReadingSms() {
+        val task: Task<Void?> = ReadSmsManager.startConsent(this, null)
+        task.addOnCompleteListener { task1: Task<Void?> ->
+            if (task1.isSuccessful) {
+                Toast.makeText(
+                        this@PhoneActivity,
+                        getString(R.string.start_reading_sms),
+                        Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -104,10 +167,10 @@ class PhoneActivity : BaseActivity() {
              *  Значением по умолчанию является Locale.getDefault.
              */
             .locale(
-                Locale(
-                    "ru",
-                    "RU"
-                )
+                    Locale(
+                            "ru",
+                            "RU"
+                    )
             ).build()
 
         /**
@@ -117,9 +180,9 @@ class PhoneActivity : BaseActivity() {
          */
         val task: Task<VerifyCodeResult> =
             PhoneAuthProvider.requestVerifyCode(
-                phoneNumber.substring(0, 2),
-                phoneNumber.substring(2),
-                settings
+                    phoneNumber.substring(0, 2),
+                    phoneNumber.substring(2),
+                    settings
             )
         task.addOnSuccessListener {
             /**
@@ -127,17 +190,17 @@ class PhoneActivity : BaseActivity() {
              */
         llCodeInput.visibility = View.VISIBLE
             Toast.makeText(
-                this@PhoneActivity,
-                "Please wait verification code, and then type it and press OK",
-                Toast.LENGTH_LONG
+                    this@PhoneActivity,
+                    "Please wait verification code, and then type it and press OK",
+                    Toast.LENGTH_LONG
             ).show()
         }.addOnFailureListener { e: Exception ->
             Log.e(TAG, e.message.toString())
             val message = checkError(e)
             Toast.makeText(
-                this@PhoneActivity,
-                message,
-                Toast.LENGTH_LONG
+                    this@PhoneActivity,
+                    message,
+                    Toast.LENGTH_LONG
             ).show()
             results.text = message
             editTextPhone.isEnabled = true
@@ -185,9 +248,9 @@ class PhoneActivity : BaseActivity() {
                 Log.e(TAG, e.message.toString())
                 val message = checkError(e)
                 Toast.makeText(
-                    this@PhoneActivity,
-                    message,
-                    Toast.LENGTH_LONG
+                        this@PhoneActivity,
+                        message,
+                        Toast.LENGTH_LONG
                 ).show()
                 results.text = message
             }
@@ -199,22 +262,22 @@ class PhoneActivity : BaseActivity() {
         val credential: AGConnectAuthCredential = if (credentialType) {
             /** С паролем */
             PhoneAuthProvider.credentialWithPassword(
-                /**Код страны (международный), для России это 7, вводится без знака +*/
-                phoneNumber.substring(1, 2),
-                /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
-                phoneNumber.substring(2),
-                "password"//TODO() we need request password from user...
+                    /**Код страны (международный), для России это 7, вводится без знака +*/
+                    phoneNumber.substring(1, 2),
+                    /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
+                    phoneNumber.substring(2),
+                    "password"//TODO() we need request password from user...
             )
         } else {
             /** с кодом верификации, пароль опционален*/
             PhoneAuthProvider.credentialWithVerifyCode(
-                /**Код страны (международный), для России это 7, вводится без знака +*/
-                phoneNumber.substring(1, 2),
-                /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
-                phoneNumber.substring(2),
-                /** пароль опционален*/
-                "",
-                verifyCode
+                    /**Код страны (международный), для России это 7, вводится без знака +*/
+                    phoneNumber.substring(1, 2),
+                    /** Номер телефона без кода страны т.е. 9876543210, вводится без разделителей и доп. символов*/
+                    phoneNumber.substring(2),
+                    /** пароль опционален*/
+                    "",
+                    verifyCode
             )
         }
         /**Осуществляем вход.*/
@@ -230,9 +293,9 @@ class PhoneActivity : BaseActivity() {
                 Log.e(TAG, e.message.toString())
                 val message = checkError(e)
                 Toast.makeText(
-                    this@PhoneActivity,
-                    message,
-                    Toast.LENGTH_LONG
+                        this@PhoneActivity,
+                        message,
+                        Toast.LENGTH_LONG
                 ).show()
                 results.text = message
                 /** Если получаем ошибку AGCAuthException.USER_NOT_REGISTERED,
@@ -323,9 +386,9 @@ class PhoneActivity : BaseActivity() {
 
     @SuppressLint("SetTextI18n")
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+            requestCode: Int,
+            permissions: Array<out String>,
+            grantResults: IntArray
     ) {
         if (requestCode == 1) {
             if (grantResults.size > 1 &&
@@ -338,7 +401,7 @@ class PhoneActivity : BaseActivity() {
             } else {
                 Log.i(
                         TAG,
-                    "onRequestPermissionsResult: apply READ_PHONE_STATE & READ_PHONE_NUMBERS PERMISSION failed"
+                        "onRequestPermissionsResult: apply READ_PHONE_STATE & READ_PHONE_NUMBERS PERMISSION failed"
                 )
                 results.text =
                     "onRequestPermissionsResult: apply READ_PHONE_STATE PERMISSION &READ_PHONE_NUMBERS failed"
